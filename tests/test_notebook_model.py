@@ -62,6 +62,27 @@ class NotebookModelTests(unittest.TestCase):
         for row in clientes.itertuples(index=False):
             self.assertIn(row.accion, roles[row.cajero])
 
+    def test_notebook_is_fully_executed_without_cell_errors(self) -> None:
+        notebook = json.loads(NOTEBOOK.read_text(encoding="utf-8"))
+        code_cells = [cell for cell in notebook["cells"] if cell["cell_type"] == "code"]
+        self.assertTrue(all(cell["execution_count"] is not None for cell in code_cells))
+        self.assertFalse(
+            any(
+                output.get("output_type") == "error"
+                for cell in code_cells
+                for output in cell.get("outputs", [])
+            )
+        )
+        stdout = "".join(
+            "".join(output.get("text", []))
+            for cell in code_cells
+            for output in cell.get("outputs", [])
+            if output.get("output_type") == "stream"
+        )
+        self.assertIn("Todas las validaciones finalizaron correctamente.", stdout)
+        self.assertIn("CONCLUSIONES", stdout)
+        self.assertTrue((ROOT / "resultados" / "comparacion_escenarios.png").exists())
+
 
 if __name__ == "__main__":
     unittest.main()

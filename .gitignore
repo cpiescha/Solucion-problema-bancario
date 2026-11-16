@@ -1,0 +1,6 @@
+# Generated tabular outputs are reproducible from the executed notebook.
+resultados/*.csv
+
+# Local Python caches.
+__pycache__/
+*.pyc
