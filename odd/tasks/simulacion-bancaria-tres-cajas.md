@@ -1,7 +1,7 @@
 # Simulación bancaria de tres cajas
 Implementar un notebook reproducible y comentado para resolver la actividad de teoría de colas del problema bancario.
 Modelo principal acordado: tres colas FIFO independientes, una por caja (tres M/M/1 configurables).
-Delivery strategy: single-pr con dos work-unit commits; slice 1 `d8f1092` (modelo + pruebas, 491 líneas por sobrecosto del JSON del notebook), slice 2 resultados + validación + cierre.
+Delivery strategy: single-pr con dos work-unit commits; slice 1 `d8f1092` (modelo + pruebas, 491 líneas por sobrecosto del JSON del notebook), slice 2 `756751d` (resultados + validación + cierre, 531 líneas por notebook ejecutado y script reproducible).
 
 ## Specs
 
@@ -11,11 +11,11 @@ S2. "Tres M/M/1 independientes (recomendado)"
 
 ## Tasks
 
-- T1 [S1-S2] route: parent-inline — Consolidar requisitos, supuestos y estructura del notebook. status: done; commit: pending
+- T1 [S1-S2] route: parent-inline — Consolidar requisitos, supuestos y estructura del notebook. status: done; commit: d8f1092
 - T2 [S1-S2] route: parent-inline — Implementar parámetros, motor de simulación y escenarios de tres cajas. status: done; commit: d8f1092
-- T3 [S1] route: parent-inline — Ejecutar réplicas y responder los puntos cuantitativos de la actividad. status: done; commit: pending
-- T4 [S1] route: parent-inline — Incorporar validaciones, comentarios, interpretación y conclusiones. status: done; commit: pending
-- T5 [S1-S2] route: self-verification — Ejecutar el notebook de principio a fin y verificar resultados reproducibles. status: done; commit: pending
+- T3 [S1] route: parent-inline — Ejecutar réplicas y responder los puntos cuantitativos de la actividad. status: done; commit: 756751d
+- T4 [S1] route: parent-inline — Incorporar validaciones, comentarios, interpretación y conclusiones. status: done; commit: 756751d
+- T5 [S1-S2] route: self-verification — Ejecutar el notebook de principio a fin y verificar resultados reproducibles. status: done; commit: 756751d
 
 ## Log
 
