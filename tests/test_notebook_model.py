@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import base64
 import json
 import os
 import sys
@@ -81,7 +82,46 @@ class NotebookModelTests(unittest.TestCase):
         )
         self.assertIn("Todas las validaciones finalizaron correctamente.", stdout)
         self.assertIn("CONCLUSIONES", stdout)
-        self.assertTrue((ROOT / "resultados" / "comparacion_escenarios.png").exists())
+        self.assertEqual(stdout.count("CONCLUSIONES"), 1)
+        images = [
+            output["data"]["image/png"]
+            for cell in code_cells
+            for output in cell.get("outputs", [])
+            if output.get("output_type") == "display_data"
+            and "image/png" in output.get("data", {})
+        ]
+        self.assertGreaterEqual(len(images), 2)
+        for image in images:
+            self.assertTrue(base64.b64decode(image, validate=True).startswith(b"\x89PNG\r\n\x1a\n"))
+        source = "\n".join("".join(cell["source"]) for cell in code_cells)
+        for forbidden in ("RESULTADOS_DIR", "to_csv", "savefig", "mkdir"):
+            self.assertNotIn(forbidden, source)
+
+        for marker, rows in (
+            ("Detalle completo de clientes:", 23940),
+            ("Resumen completo de cajeros por réplica y escenario:", 390),
+            ("Totales por acción y tipo de las 30 réplicas:", 240),
+            ("Métricas completas por réplica y escenario:", 120),
+            ("Validación completa de la Ley de Little:", 390),
+        ):
+            self.assertIn(marker, stdout)
+            lines = stdout.split(marker + "\n", 1)[1].splitlines()
+            table = lines[1:rows + 1]
+            self.assertEqual(len(table), rows)
+            self.assertTrue(all(line.strip() and "..." not in line for line in table))
+        totals = stdout.split("Totales por acción y tipo de las 30 réplicas:\n", 1)[1].splitlines()[1:241]
+        keys = {tuple(line.split()[:3]) for line in totals}
+        expected = {
+            (str(replica), accion, tipo)
+            for replica in range(1, 31)
+            for accion in self.ns["ACCIONES"]
+            for tipo in self.ns["TIPOS"]
+        }
+        self.assertEqual(keys, expected)
+
+    def test_results_directory_is_empty_or_absent(self) -> None:
+        results = ROOT / "resultados"
+        self.assertTrue(not results.exists() or not any(results.iterdir()))
 
 
 if __name__ == "__main__":

@@ -1,7 +1,8 @@
-"""Execute notebook code cells without requiring Jupyter and embed text outputs."""
+"""Execute notebook code cells without requiring Jupyter and embed text and PNG outputs."""
 
 from __future__ import annotations
 
+import base64
 import io
 import json
 import os
@@ -10,6 +11,7 @@ import traceback
 from contextlib import redirect_stderr, redirect_stdout
 from pathlib import Path
 from types import ModuleType
+from unittest.mock import patch
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -22,6 +24,10 @@ def stream_output(name: str, text: str) -> dict:
 
 def main() -> None:
     os.environ.setdefault("MPLBACKEND", "Agg")
+    import matplotlib.pyplot as plt
+
+    # Initialize the backend before patching show: lazy initialization replaces it.
+    plt.switch_backend("Agg")
     os.chdir(ROOT)
     notebook = json.loads(NOTEBOOK.read_text(encoding="utf-8"))
 
@@ -42,8 +48,26 @@ def main() -> None:
         cell["outputs"] = []
         source = "".join(cell.get("source", []))
 
+        def flush_streams() -> None:
+            for name, stream in (("stdout", stdout), ("stderr", stderr)):
+                if stream.getvalue():
+                    cell["outputs"].append(stream_output(name, stream.getvalue()))
+                    stream.seek(0)
+                    stream.truncate(0)
+
+        def capture_show(*args, **kwargs) -> None:
+            flush_streams()
+            for number in plt.get_fignums():
+                with io.BytesIO() as buffer:
+                    plt.figure(number).savefig(buffer, format="png", dpi=180, bbox_inches="tight")
+                    cell["outputs"].append({
+                        "output_type": "display_data",
+                        "data": {"image/png": base64.b64encode(buffer.getvalue()).decode("ascii")},
+                        "metadata": {},
+                    })
+
         try:
-            with redirect_stdout(stdout), redirect_stderr(stderr):
+            with redirect_stdout(stdout), redirect_stderr(stderr), patch.object(plt, "show", capture_show):
                 exec(compile(source, str(NOTEBOOK), "exec"), namespace)
         except Exception as exc:
             if stdout.getvalue():
@@ -60,6 +84,8 @@ def main() -> None:
             )
             NOTEBOOK.write_text(json.dumps(notebook, ensure_ascii=False, indent=1), encoding="utf-8")
             raise
+        finally:
+            plt.close("all")
 
         if stdout.getvalue():
             cell["outputs"].append(stream_output("stdout", stdout.getvalue()))

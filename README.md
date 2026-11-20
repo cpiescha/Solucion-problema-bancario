@@ -18,19 +18,8 @@ La actividad pide:
 
 ```
 Solucion-problema-bancario/
-├── simulacion_bancaria_tres_cajas.ipynb   # Notebook principal con la simulacion completa
+├── simulacion_bancaria_tres_cajas.ipynb   # Notebook principal con simulacion, graficas y resultados
 ├── README.md                              # Este archivo
-├── resultados/                            # Archivos generados por la simulacion
-│   ├── detalle_clientes.csv               # Registro individual de cada cliente simulado
-│   ├── resumen_cajeros.csv                # Metricas por cajero y replica
-│   ├── comparacion_cajeros_baseline.csv   # Comparacion de cajas en escenario actual
-│   ├── usuarios_por_tipo_y_replica.csv    # Conteo de usuarios por tipo y replica
-│   ├── promedio_usuarios_por_tipo.csv     # Promedio diario por accion y tipo
-│   ├── minimos_usuarios_por_tipo.csv      # Replica con menor cantidad por tipo
-│   ├── metricas_por_replica.csv           # Espera media, p95 y tiempo en sistema por replica
-│   ├── comparacion_escenarios.csv         # Resumen comparativo de los 4 escenarios
-│   ├── validacion_little.csv              # Verificacion de la Ley de Little por caja
-│   └── comparacion_escenarios.png         # Grafico comparativo de escenarios
 ├── scripts/
 │   └── execute_notebook.py                # Script para ejecutar el notebook desde terminal
 └── tests/
@@ -57,7 +46,7 @@ cd Solucion-problema-bancario
 jupyter notebook simulacion_bancaria_tres_cajas.ipynb
 ```
 
-Ejecutar todas las celdas en orden. Los resultados se generan en la carpeta `resultados/`.
+Ejecutar todas las celdas en orden y guardar el notebook. Todos los resultados, tablas y graficas quedan embebidos en las salidas del propio notebook. No se generan archivos externos.
 
 ### Opcion 2 — Desde terminal
 
@@ -66,11 +55,13 @@ cd Solucion-problema-bancario
 python scripts/execute_notebook.py
 ```
 
+El script guarda stdout/stderr y las dos graficas como outputs Jupyter `display_data` con PNG en base64 dentro del notebook. Cierra las figuras tras cada celda; no requiere Jupyter para ejecutar.
+
 ### Opcion 3 — Pruebas unitarias
 
 ```bash
 cd Solucion-problema-bancario
-python -m pytest tests/ -v
+python -m unittest tests.test_notebook_model -v
 ```
 
 ## Escenarios simulados
